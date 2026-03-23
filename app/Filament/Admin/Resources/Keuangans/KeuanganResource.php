@@ -15,6 +15,8 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
 
 class KeuanganResource extends Resource
@@ -46,6 +48,17 @@ class KeuanganResource extends Resource
             //
         ];
     }
+    /**
+     * Mengatur query agar mendukung tampilan data yang dihapus (Trash).
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
+    }
+
 
     public static function getPages(): array
     {

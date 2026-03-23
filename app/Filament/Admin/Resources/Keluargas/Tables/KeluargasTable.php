@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Keluargas\Tables;
 
+use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -66,6 +67,12 @@ class KeluargasTable
                     ViewAction::make()
                         ->label('Lihat Detail Anggota'),
                     EditAction::make(),
+                    Action::make('cetak_kk')
+                        ->label('Cetak Kartu Keluarga')
+                        ->icon('heroicon-o-printer')
+                        ->color('success')
+                        ->url(fn($record) => route('cetak.kartu-keluarga', $record))
+                        ->openUrlInNewTab(),
                 ])
                     ->icon('heroicon-m-ellipsis-vertical')
                     ->tooltip('Opsi'),

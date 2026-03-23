@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Anggaran;
+use App\Models\Keluarga;
 use App\Models\Keuangan;
+use App\Models\Pengaturan;
+use App\Models\PksRumahTangga;
+use App\Models\SuratKeterangan;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
@@ -55,5 +59,57 @@ class LaporanController extends Controller
             ->setPaper('a5', 'landscape'); // Ukuran A5 Landscape sangat cocok untuk bukti kas
 
         return $pdf->stream("Bukti_Kas_{$transaksi->referensi}_{$transaksi->tanggal->format('Ymd')}.pdf");
+    }
+
+    /**
+     * Mencetak Kartu Keluarga Jemaat GKS Reda Pada.
+     */
+    public function cetakKartuKeluarga($id)
+    {
+        $keluarga = Keluarga::with(['anggota' => function ($query) {
+            // Urutkan: Kepala Keluarga paling atas, lalu Istri, lalu Anak
+            $query->orderByRaw("CASE 
+                WHEN hubungan_keluarga = 'Kepala Keluarga' THEN 1 
+                WHEN hubungan_keluarga = 'Istri' THEN 2 
+                WHEN hubungan_keluarga = 'Anak' THEN 3 
+                ELSE 4 END");
+        }])->findOrFail($id);
+
+        $pengaturan = Pengaturan::first();
+
+        $pdf = Pdf::loadView('reports.kartu-keluarga', compact('keluarga', 'pengaturan'))
+            ->setPaper('a4', 'landscape'); // Format Landscape agar kolom muat banyak
+
+        return $pdf->stream("KK_{$keluarga->nama_keluarga}.pdf");
+    }
+
+    public function cetakSuratKeterangan($id)
+    {
+        $surat = SuratKeterangan::with('jemaat')->findOrFail($id);
+        $pengaturan = Pengaturan::first();
+
+        $pdf = Pdf::loadView('reports.surat-keterangan', compact('surat', 'pengaturan'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->stream("Surat_{$surat->jenis_surat}_{$surat->jemaat->nama_lengkap}.pdf");
+    }
+
+    public function cetakJadwalPks(Request $request)
+    {
+        $bulan = $request->bulan ?? now()->month;
+        $tahun = $request->tahun ?? now()->year;
+        $sektor = $request->sektor;
+
+        $jadwal = PksRumahTangga::with('keluarga')
+            ->whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', $tahun)
+            ->when($sektor, fn($q) => $q->where('sektor', $sektor))
+            ->orderBy('tanggal', 'asc')
+            ->get();
+
+        $pdf = Pdf::loadView('reports.jadwal-pks', compact('jadwal', 'bulan', 'tahun', 'sektor'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->stream("Jadwal_PKS_{$bulan}_{$tahun}.pdf");
     }
 }

@@ -11,3 +11,9 @@ Route::get('/cetak-baptis/{id}', [LaporanController::class, 'cetakSuratBaptis'])
 Route::get('/cetak-bukti-kas/{id}', [LaporanController::class, 'cetakBuktiKas'])
     ->name('cetak.bukti-kas')
     ->middleware('auth');
+Route::get('/cetak-kartu-keluarga/{id}', [LaporanController::class, 'cetakKartuKeluarga'])
+    ->name('cetak.kartu-keluarga')
+    ->middleware('auth');
+
+Route::get('/cetak-surat-keterangan/{id}', [LaporanController::class, 'cetakSuratKeterangan'])->name('cetak.surat-keterangan')->middleware('auth');
+Route::get('/cetak-jadwal-pks', [LaporanController::class, 'cetakJadwalPks'])->name('cetak.jadwal-pks')->middleware('auth');
